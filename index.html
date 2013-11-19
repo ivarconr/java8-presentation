@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Java 8: Project Lambda</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <style type="text/css">
+      /* Slideshow styles */
+      @import url(http://fonts.googleapis.com/css?family=Open+Sans);
+
+      body {
+        font-family: 'Open Sans', sans-serif;
+        font-size: 16px;
+      }
+      h1, h2, h3 {
+        font-weight: 400;
+        margin-bottom: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle
+
+# Java 8 - Project Lambda
+# λ
+
+Ivar Conradi Østhus
+
+ico@finn.no
+
+---
+
+# Java SE 8 adds a small number of (*important*) new features:
+
+- Lambda expressions 
+ - method references
+ - type inference
+- Default (and static) methods in interfaces  
+- java.util.stream package for aggregate  / data-­parallel operations
+  
+
+## Project lambda is a bigger addition to Java than generics was
+
+---
+
+# Imperative style
+    
+```
+List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5, 6);
+
+//1: old loop
+for(int i = 0; i < numbers.size(); i++) {
+  System.out.println(i);
+}
+
+//2: enhanced for-loop
+for(int n : numbers) {
+  System.out.println(n);
+}
+```
+
+- Very low level and we need to write all steps on the way
+- Extra mutable garbage variables
+- Must know **how** to iterate a list of elements
+- Easy to introduce bugs
+
+
+---
+# Functional style: forEach
+    
+
+### Consumer<T>:
+```
+List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5, 6);
+
+numbers.forEach(new Consumer<Integer>() {
+  public void accept(Integer number) {
+    System.out.println(number);
+  }
+});
+```
+
+### With lambda
+```
+numbers.forEach((Integer n) -> System.out.println(n));
+```
+
+### Lambda and type inference
+```
+s.forEach(n -> System.out.println(n));
+```
+
+---
+# Store lambda as function
+```
+public static Consumer<Integer> consumeIntegers() {
+  return (Integer n) -> System.out.println(n);
+}
+
+List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5, 6);
+
+numbers.forEach(consumeIntegers());
+```
+
+- reuse lambda expressions
+
+---
+
+# Method references
+```
+List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5, 6);
+
+numbers.forEach(System.out::println);
+```
+- does not need lambda wrapping a function call
+- Can borrow functions with the `::`-notation
+- Can be static or instance methods
+- Can refer to constructor method via new keyword 
+ - `User::new`
+
+---
+# Lambdas in Java 8
+```
+(int x, int y) -> { return x + y; }
+ 
+(x, y) -> x + y
+ 
+x -> x + x
+ 
+() -> x
+ 
+value -> { 
+  int times2 = value * 2;
+  System.out.println(times2); 
+}
+```
+
+## Notes:
+
+- lexical scoping
+  - Lambda expression closes over the scope of its definition
+  - can access variables from enclosing scope
+- effectively final
+  - compiler will detect mutation
+  - relaxes the requirement the use of final keyword
+
+
+---
+# Functional interfaces
+
+```
+@FunctionalInterface
+public interface Predicate<T> {
+  boolean test(T t);
+  //...
+}
+```
+
+- **one** abstract unimplemented methods
+- optional default methods
+- optional @FunctionalInterface annotation
+- already a lot of functional interfaces in java
+
+---
+# Functional interfaces in the JDK
+
+```
+Counsumer<T> 
+//takes an input T and performs an operation on it.
+
+Supplier<T> 
+//a kind of factory,  will return a new or existing instance.
+
+Predicate<T>
+//Checks if argument T satisfies a requirement.
+
+Function<T, R> 
+//Transform an argument from type T to type R.
+```
+
+---
+# Streams!
+
+
+
+    </textarea>
+    <script src="http://gnab.github.io/remark/downloads/remark-0.5.9.min.js" type="text/javascript">
+    </script>
+    <script type="text/javascript">
+      var hljs = remark.highlighter.engine;
+      var slideshow = remark.create({
+        highlightStyle: 'sunburst',
+        highlightLanguage: 'java' 
+      });
+    </script>
+  </body>
+</html>
