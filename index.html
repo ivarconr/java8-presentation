@@ -37,6 +37,11 @@ ico@finn.no
  - type inference
 - Default (and static) methods in interfaces  
 - java.util.stream package for aggregate  / data-­parallel operations
+- Scheduled for March 2014
+
+The short-term goals are to support internal iteration of collections, in the interests of efficiently utilising increasingly parallel hardware. The longer-term perspective is to steer Java in a direction that supports a more functional style of programming
+
+In Java 8, the intention is instead to provide collections with methods that will take functions and use them, each in different ways, to process their elements. (We will use as an example the very simple method forEach, which takes a function and just applies it to every element.) The advantage that this change brings is that collections can now organise their own iteration internally, transferring responsibility for parallelisation from client code into library code.
   
 
 ## Project lambda is a bigger addition to Java than generics was
@@ -179,12 +184,136 @@ Function<T, R>
 ```
 
 ---
-# Streams!
+# The Java Stream API
+
+- Integration of lambda expression into the core Collection API's
+- Streams => sequence of values
+- Streams are like iterators, yield elements for processing
+- An abstraction for specifying aggregate computions on data set
+- Why did they not just add filter, map etc directly on Java Collections?
+
+### Benefits:
+- more concise 
+- more readable
+- more composable operations
+- parallelizable
+
+## _Intention: replace loops for aggregate opterations_
+
+
+### Sidenote: Pipes in linux
+```bash
+cat index.html | tr "[A-Z]" "[a-z]" | grep lambda | sort
+```
+
+Other notes:
+- do NOT modify the source during query
+- operation params must be stateless
+
+
+---
+
+# Double and sum all even numbers
+
+```
+List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5, 6);
+```
+
+### Imperative solution
+```
+int sumOfDoubledEvenNbrs = 0;
+for(int number : numbers) {
+  if(number % 2 == 0) {
+    sumOfDoubledEvenNbrs += number * 2;
+  }
+}
+```
+
+### Stream solution
+```
+int sum = numbers.stream()
+  .filter(n -> n % 2 == 0)
+  .mapToInt(n -> n * 2)
+  .sum();
+```
+
+---
+# Source
+- collections, arrays, generator functions, IO
+- _can be infinite_
+
+# Intermediate operations
+- filter, map, flatMap, sorted, distinct, limit,...
+- lazy: create new strams
+- often use lambdas to transform or drop values
+
+# Terminal operation
+- forEach, reduce, sum, min, max, count, collect, findFirst, findAny
+- produces a result / side-effect
+- _pulls_ values down the pipeline
+
+---
+# Collector: toSet
+```
+Set<String> names = persons.stream()
+  .map(Person::getName)
+  .collect(toSet());
+```
+
+Resultat:
+```
+[Ivar Østhus, Donald Duck, Ola Hansen, Kari Normann, Silje Hansen, 
+Knerten Lillebror]
+```
+
+---
+# Collector: groupsBy
+
+```
+Map<City, List<String>> groupNameByCity = 
+  persons.stream()
+    .collect(groupingBy(Person::getCity, mapping(Person::getName, toList())));
+```
+
+Resultat:
+```
+{Sandnes=[Ola Hansen, Ivar Østhus], Oslo=[Silje Hansen, Knerten Lillebror, Kari Normann], Bergen=[Donald Duck]}
+```
+
+---
+# Collector: groupsBy and counting
+
+```
+Map<City, Integer> countByCity = 
+  persons.stream()
+    .collect(groupingBy(Person::getCity, counting()));
+```
+
+Resultat:
+```
+{Sandnes=2, Oslo=3, Bergen=1}
+```
+
+---
+# Collector: joining
+```java
+persons.stream()
+  .filter(p -> p.getAge() > 18)
+  .sorted((p1, p2) -> p1.getAge() - p2.getAge())
+  .map(p -> p.getAge() + ":" + p.getName())
+  .collect(Collectors.joining(", "));
+```
+
+Output:
+```
+21:Ola Hansen, 28:Ivar Østhus, 29:Kari Normann, 42:Donald Duck
+```
+
 
 
 
     </textarea>
-    <script src="http://gnab.github.io/remark/downloads/remark-0.5.9.min.js" type="text/javascript">
+    <script src="lib/remark.min.js" type="text/javascript">
     </script>
     <script type="text/javascript">
       var hljs = remark.highlighter.engine;
