@@ -5,10 +5,10 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <style type="text/css">
       /* Slideshow styles */
-      @import url(http://fonts.googleapis.com/css?family=Open+Sans);
+      @import url(lib/ubuntu.css);
 
       body {
-        font-family: 'Open Sans', sans-serif;
+        font-family: 'Ubuntu', sans-serif;
         font-size: 16px;
       }
       h1, h2, h3 {
@@ -21,7 +21,7 @@
     <textarea id="source">
 class: center, middle
 
-# Java 8 - Project Lambda
+# Java 8 :: Project Lambda
 # λ
 
 Ivar Conradi Østhus
@@ -52,12 +52,17 @@ In Java 8, the intention is instead to provide collections with methods that wil
     
 ```
 List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5, 6);
+```
 
+```
 //1: old loop
 for(int i = 0; i < numbers.size(); i++) {
   System.out.println(i);
 }
+```
 
+
+```
 //2: enhanced for-loop
 for(int n : numbers) {
   System.out.println(n);
@@ -72,12 +77,22 @@ for(int n : numbers) {
 
 ---
 # Functional style: forEach
-    
 
-### Consumer<T>:
 ```
-List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5, 6);
+List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5, 6);   
+```
 
+### 
+```
+public interface Iterable<T> {
+  ...
+  void forEach(Consumer<? super T> action);
+  ...
+}
+```
+
+### With annonymous inner class:
+```
 numbers.forEach(new Consumer<Integer>() {
   public void accept(Integer number) {
     System.out.println(number);
@@ -85,26 +100,70 @@ numbers.forEach(new Consumer<Integer>() {
 });
 ```
 
-### With lambda
+### With lambda expression
 ```
 numbers.forEach((Integer n) -> System.out.println(n));
 ```
 
-### Lambda and type inference
+
+---
+# Lambda: types
+
+### **Single expression**
 ```
-s.forEach(n -> System.out.println(n));
+(Integer i) -> i * 2;
+```
+
+### **Statement block**
+```
+(int x, int y) -> { return x + y; }
+
+//multiple lines of code
+(int n) -> {
+  int value = n*2;
+  return value;
+};
 ```
 
 ---
-# Store lambda as function
+# Lambda: type inference
 ```
-public static Consumer<Integer> consumeIntegers() {
-  return (Integer n) -> System.out.println(n);
-}
+(Integer i) -> i * 2;
 
+(i) -> i * 2;
+
+i -> i*2;
+```
+
+Can also drop return in single expression lambdas. 
+```
+(int x, int y) -> { return x + y; }
+ 
+(x, y) -> x + y
+```
+
+---
+# Reuse lambdas
+
+```
 List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5, 6);
+```
 
-numbers.forEach(consumeIntegers());
+## Store as function
+```
+public static Consumer<Integer> consumer() {
+  return (Integer n) -> System.out.println(n);
+} 
+
+numbers.forEach(consumer());
+```
+
+## Store as variabel
+```
+//as varaible
+public Consumer<Integer> consumer = (Integer n) -> System.out.println(n);
+
+numbers.forEach(consumer);
 ```
 
 - reuse lambda expressions
@@ -115,6 +174,10 @@ numbers.forEach(consumeIntegers());
 ```
 List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5, 6);
 
+//Lambda
+numbers.forEach(n -> System.out.println(n));
+
+//Method reference
 numbers.forEach(System.out::println);
 ```
 - does not need lambda wrapping a function call
@@ -124,8 +187,9 @@ numbers.forEach(System.out::println);
  - `User::new`
 
 ---
-# Lambdas in Java 8
+# Summary
 ```
+//Some lambdas
 (int x, int y) -> { return x + y; }
  
 (x, y) -> x + y
@@ -141,7 +205,7 @@ value -> {
 ```
 
 ## Notes:
-
+- enable better libraries
 - lexical scoping
   - Lambda expression closes over the scope of its definition
   - can access variables from enclosing scope
@@ -150,6 +214,21 @@ value -> {
   - relaxes the requirement the use of final keyword
 
 
+
+---
+class: center, middle
+
+# We can use lambdas with methods which takes a *functional interface* as argument
+
+Notater:
+- Hva er functional interface?
+- Bonus: existing libraries are now forward-compatible to lambdas
+ - Libraries that never imagined lambdas still work with them!
+ - Maintains significant investment in existing libraries
+ - Fewer new concepts
+- invokedynamic to capture lambda expressions
+- Java API will be full of functional interfaces
+
 ---
 # Functional interfaces
 
@@ -157,7 +236,7 @@ value -> {
 @FunctionalInterface
 public interface Predicate<T> {
   boolean test(T t);
-  //...
+  ...
 }
 ```
 
@@ -165,6 +244,7 @@ public interface Predicate<T> {
 - optional default methods
 - optional @FunctionalInterface annotation
 - already a lot of functional interfaces in java
+- lambdas converted to functional interfaces
 
 ---
 # Functional interfaces in the JDK
@@ -191,6 +271,8 @@ Function<T, R>
 - Streams are like iterators, yield elements for processing
 - An abstraction for specifying aggregate computions on data set
 - Why did they not just add filter, map etc directly on Java Collections?
+- Can be paralell
+- Can be infinite
 
 ### Benefits:
 - more concise 
@@ -199,6 +281,15 @@ Function<T, R>
 - parallelizable
 
 ## _Intention: replace loops for aggregate opterations_
+
+Notater:
+- vi har jo hatt dette i databaser en stund!
+- løsning i Java 8: Stream (med hjelp av lambda)
+- Stream pipelimes are like builders
+ - ladd many intermediate ops, then execute pipeline ONCE
+- Don't modify source during query!!
+- 
+
 
 
 ### Sidenote: Pipes in linux
@@ -246,14 +337,108 @@ int sum = numbers.stream()
 - filter, map, flatMap, sorted, distinct, limit,...
 - lazy: create new strams
 - often use lambdas to transform or drop values
+Notater:
+gjør ikke faktisk arbeid, setter bare opp pipeline med operasjoner
 
 # Terminal operation
-- forEach, reduce, sum, min, max, count, collect, findFirst, findAny
+- Aggregation / summary:
+  - toArray, toList
+  - reduce,
+  - sum, min, max, count
+  - anyMatch, allMatch
+- iteration
+  - forEach
+- Searching
+  - findFirst
+  - findAny
+
 - produces a result / side-effect
 - _pulls_ values down the pipeline
 
 ---
-# Collector: toSet
+# Stream: sources 
+
+from Collections
+```
+Stream<Person> personStream = persons.stream();
+```
+
+from IO
+```
+Stream<String> lineStream = bufferedReader.lines();
+ ```
+
+Stream factories
+```
+//range
+IntStream numbers = IntStream.range(0, 10);
+
+//random numbers
+DoubleStream randomDoubles = new Random().doubles();
+
+IntStream randomInts = new Random().ints(0, 10);
+```
+
+---
+# Stream: intermediate operations
+- returns a *Stream*, not elements 
+- they are lazy
+
+filter
+```
+Stream<Person> stream = persons.stream().filter(p -> p.getAge() > 17);
+```
+
+map
+```
+Stream<String> stream = persons.stream().map(Person::getName);
+```
+
+mapToInt
+```
+IntStream stream3 = persons.stream().mapToInt(Person::getAge);
+```
+
+---
+# Stream: statefull intermediate operations
+- harder to run in parallel
+- Examples: 
+ - limit
+ - substream 
+ - sorted
+ - distinct
+
+```
+Stream<Person> sortedStream = persons.stream()
+    .filter(p -> p.getAge() > 17)
+    .sorted((p1, p2) -> p1.getAge() - p2.getAge());
+```
+
+---
+# Stream: Terminal operations
+- return non-stream elements
+- eager: force evaluation of the stream
+
+
+```
+int maxAge = persons.stream()
+  .mapToInt(Person::getAge)
+  .max();
+```
+
+
+---
+# Stream: Collector
+- aggregate values in to a container
+- many predefined collectors in `java.util.stream.Collectors`
+ - counting
+ - averaging/summarizing/sum/min
+ - toList/toMap/toSet
+ - reducing
+ - groupingBy
+ - mapping 
+
+Collectors.toSet()
 ```
 Set<String> names = persons.stream()
   .map(Person::getName)
@@ -267,36 +452,37 @@ Knerten Lillebror]
 ```
 
 ---
-# Collector: groupsBy
+# Stream: Collector
 
+
+Collectors.groupingBy: age
 ```
-Map<City, List<String>> groupNameByCity = 
+Map<Integer, List<Person>> personsByAge =
+    persons.stream().collect(groupingBy(Person::getAge));
+```
+
+groupingBy age, and only get their names
+```
+Map<Integer, List<String>> peopleByAge = 
   persons.stream()
-    .collect(groupingBy(Person::getCity, mapping(Person::getName, toList())));
+    .collect(groupingBy(Person::getAge, mapping(Person::getName, toList())));
 ```
 
-Resultat:
+groupingByAge, and only count elements in group
 ```
-{Sandnes=[Ola Hansen, Ivar Østhus], Oslo=[Silje Hansen, Knerten Lillebror, Kari Normann], Bergen=[Donald Duck]}
-```
-
----
-# Collector: groupsBy and counting
-
-```
-Map<City, Integer> countByCity = 
+Map<Integer, Long> ages = 
   persons.stream()
-    .collect(groupingBy(Person::getCity, counting()));
+    .collect(groupingBy(Person::getAge, counting()));
 ```
-
-Resultat:
 ```
-{Sandnes=2, Oslo=3, Bergen=1}
+{16=1, 32=1, 28=2, 12=1, 29=1}
 ```
 
 ---
 # Collector: joining
-```java
+# droppes?
+
+```
 persons.stream()
   .filter(p -> p.getAge() > 18)
   .sorted((p1, p2) -> p1.getAge() - p2.getAge())
@@ -309,6 +495,77 @@ Output:
 21:Ola Hansen, 28:Ivar Østhus, 29:Kari Normann, 42:Donald Duck
 ```
 
+---
+# Stream the contents of a CSV file
+
+*Map persons in a CSV to a list of persons and return the 50 first adults. *
+
+```csv
+name, age, city, country
+Ivar Østhus, 28, Oslo, Norway
+Viswanathan Anand, 43, Mayiladuthurai, India
+Magnus Carlsen, 22, Tønsberg, Norway
+...
+```
+
+**Solution:**
+```
+InputStream is = new FileInputStream(new File("persons.csv"));
+BufferedReader br = new BufferedReader(new InputStreamReader(is));
+ 
+List<Person> persons = br.lines()
+    .substream(1)
+    .map(toPerson)
+    .filter(isAdult)
+    .limit(50)
+    .collect(toList());
+```
+
+lambdas:
+```
+public static Function<String, Person> toPerson = (line) -> {
+  String[] p = line.split(", ");
+  return new Person(p[0], Integer.parseInt(p[1]), p[2], p[3]);
+};
+public static Predicate<Person> isAdult = p -> p.getAge() > 17;
+```
+
+
+---
+# Parallel Streams
+- A behavioral parameter (lambda) may be invoked concurrently
+- Must not access any state that might change during the operation
+- This constraint gives us “wiggle room” to optimize
+
+(illustere parallel kjøroing?)
+
+## Performance
+- Should I go parallel?
+- Do not assume parallel is always faste
+ - Going parallel is easy, but not always the right thing to do
+- Qualitative considerations
+ - How good is the stream source decomposition?
+ - Does the terminal operation have a cheap or expensive merge step?
+- What are the stream characteristics?
+ - The primitive streams are included for performance reasons
+ - Boxing hurts performance
+- For small data sets, sequential usually wins
+- Complex pipelines are harder to reason about
+- MEASURE!
+
+```
+N = size of source data set
+Q = cost per-element through the pipeline
+N * Q ~= cost of pipeline
+```
+*Larger N * Q → higher chance of good parallel performance*
+*easier to know N
+
+---
+# default methods
+- not break existing collections in Java
+- any interface can contain one ore more concrete methods
+- can be re-implemented
 
 
 
