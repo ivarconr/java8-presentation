@@ -9,7 +9,7 @@
 
       body {
         font-family: 'Ubuntu', sans-serif;
-        font-size: 16px;
+        font-size: 18px;
       }
       h1, h2, h3 {
         font-weight: 400;
@@ -30,25 +30,36 @@ ico@finn.no
 
 ---
 
-# Java SE 8 adds a small number of (*important*) new features:
+# Java 8 - a few new (important) features
 
-- Lambda expressions 
- - method references
- - type inference
-- Default (and static) methods in interfaces  
-- java.util.stream package for aggregate  / data-­parallel operations
-- Scheduled for March 2014
+- **Lambda expressions**
+ - *greater impact than generics in Java 1.5*
+- **Stream API**
+- **Default methods in interfaces**
+- Compact Profiles
+- Nashorn JavaScript Engine
+- More annotations
+- Parallel Array Sorting
+- (new) Date & Time API
+- Concurrency Updates
+-   .
+-   .
+-   .
+- **Scheduled for March 2014**
 
-The short-term goals are to support internal iteration of collections, in the interests of efficiently utilising increasingly parallel hardware. The longer-term perspective is to steer Java in a direction that supports a more functional style of programming
 
-In Java 8, the intention is instead to provide collections with methods that will take functions and use them, each in different ways, to process their elements. (We will use as an example the very simple method forEach, which takes a function and just applies it to every element.) The advantage that this change brings is that collections can now organise their own iteration internally, transferring responsibility for parallelisation from client code into library code.
-  
+Complete list: http://openjdk.java.net/projects/jdk8/features
 
-## Project lambda is a bigger addition to Java than generics was
+
+---
+class: center, middle
+
+# **Warning:**
+# *a lot of code examples in this presentation!*
 
 ---
 
-# Imperative style
+# Imperative style: for each element
     
 ```
 List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5, 6);
@@ -69,14 +80,15 @@ for(int n : numbers) {
 }
 ```
 
+<!--
 - Very low level and we need to write all steps on the way
 - Extra mutable garbage variables
 - Must know **how** to iterate a list of elements
 - Easy to introduce bugs
-
+-->
 
 ---
-# Functional style: forEach
+# Declarative style: for each element
 
 ```
 List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5, 6);   
@@ -100,7 +112,7 @@ numbers.forEach(new Consumer<Integer>() {
 });
 ```
 
-### With lambda expression
+### With lambda expression:
 ```
 numbers.forEach((Integer n) -> System.out.println(n));
 ```
@@ -133,13 +145,16 @@ numbers.forEach((Integer n) -> System.out.println(n));
 (i) -> i * 2;
 
 i -> i*2;
+
+
+//Multiple params
+(int x, int y) -> x + y
+
+(x, y) -> x + y
 ```
 
-Can also drop return in single expression lambdas. 
 ```
-(int x, int y) -> { return x + y; }
- 
-(x, y) -> x + y
+(final Integer i) -> i * 2;
 ```
 
 ---
@@ -149,7 +164,7 @@ Can also drop return in single expression lambdas.
 List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5, 6);
 ```
 
-## Store as function
+### **Function**
 ```
 public static Consumer<Integer> consumer() {
   return (Integer n) -> System.out.println(n);
@@ -158,19 +173,15 @@ public static Consumer<Integer> consumer() {
 numbers.forEach(consumer());
 ```
 
-## Store as variabel
+### **Variabel**
 ```
-//as varaible
 public Consumer<Integer> consumer = (Integer n) -> System.out.println(n);
 
 numbers.forEach(consumer);
 ```
 
-- reuse lambda expressions
-
 ---
-
-# Method references
+# Method reference
 ```
 List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5, 6);
 
@@ -180,16 +191,10 @@ numbers.forEach(n -> System.out.println(n));
 //Method reference
 numbers.forEach(System.out::println);
 ```
-- does not need lambda wrapping a function call
-- Can borrow functions with the `::`-notation
-- Can be static or instance methods
-- Can refer to constructor method via new keyword 
- - `User::new`
 
 ---
-# Summary
+# Lambda summary
 ```
-//Some lambdas
 (int x, int y) -> { return x + y; }
  
 (x, y) -> x + y
@@ -198,26 +203,24 @@ x -> x + x
  
 () -> x
  
-value -> { 
-  int times2 = value * 2;
-  System.out.println(times2); 
-}
 ```
 
-## Notes:
+### Notes:
 - enable better libraries
-- lexical scoping
-  - Lambda expression closes over the scope of its definition
-  - can access variables from enclosing scope
+- use lexical scoping
 - effectively final
-  - compiler will detect mutation
-  - relaxes the requirement the use of final keyword
-
 
 
 ---
-class: center, middle
+# Use of functional interface
 
+Methods taking a *functional interface* will accept:
+
+- an anonymous inner class
+- a lambda expression
+- a method reference
+
+<!--
 # We can use lambdas with methods which takes a *functional interface* as argument
 
 Notater:
@@ -227,24 +230,23 @@ Notater:
  - Maintains significant investment in existing libraries
  - Fewer new concepts
 - invokedynamic to capture lambda expressions
-- Java API will be full of functional interfaces
+
+-->
 
 ---
-# Functional interfaces
+# What is a functional interfaces?
 
 ```
 @FunctionalInterface
 public interface Predicate<T> {
   boolean test(T t);
-  ...
 }
 ```
 
 - **one** abstract unimplemented methods
-- optional default methods
 - optional @FunctionalInterface annotation
 - already a lot of functional interfaces in java
-- lambdas converted to functional interfaces
+- Java API will be full of functional interfaces
 
 ---
 # Functional interfaces in the JDK
@@ -264,47 +266,12 @@ Function<T, R>
 ```
 
 ---
+class: center, middle
 # The Java Stream API
-
-- Integration of lambda expression into the core Collection API's
-- Streams => sequence of values
-- Streams are like iterators, yield elements for processing
-- An abstraction for specifying aggregate computions on data set
-- Why did they not just add filter, map etc directly on Java Collections?
-- Can be paralell
-- Can be infinite
-
-### Benefits:
-- more concise 
-- more readable
-- more composable operations
-- parallelizable
-
-## _Intention: replace loops for aggregate opterations_
-
-Notater:
-- vi har jo hatt dette i databaser en stund!
-- løsning i Java 8: Stream (med hjelp av lambda)
-- Stream pipelimes are like builders
- - ladd many intermediate ops, then execute pipeline ONCE
-- Don't modify source during query!!
-- 
-
-
-
-### Sidenote: Pipes in linux
-```bash
-cat index.html | tr "[A-Z]" "[a-z]" | grep lambda | sort
-```
-
-Other notes:
-- do NOT modify the source during query
-- operation params must be stateless
 
 
 ---
-
-# Double and sum all even numbers
+# Task: Double and sum all even numbers
 
 ```
 List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5, 6);
@@ -320,13 +287,51 @@ for(int number : numbers) {
 }
 ```
 
-### Stream solution
+### Declarative solution
 ```
 int sum = numbers.stream()
   .filter(n -> n % 2 == 0)
   .mapToInt(n -> n * 2)
   .sum();
 ```
+
+---
+# The Java Stream API
+
+- Integration of lambda expression into the core Collection API's
+- Streams are like iterators, yield elements for processing
+- An abstraction for specifying aggregate computation on data set
+- Why did they not just add filter, map etc directly on Java Collections?
+
+- Can be paralell
+- Can be infinite
+- more concise 
+- more readable
+- more composable operations
+- parallelizable
+
+_Intention: replace loops for aggregate opterations_
+
+Notater:
+- vi har jo hatt dette i databaser en stund!
+- løsning i Java 8: Stream (med hjelp av lambda)
+- Stream pipelimes are like builders
+ - ladd many intermediate ops, then execute pipeline ONCE
+- Don't modify source during query!!
+
+Fine prints:
+- do NOT modify the source during query
+- operation params must be stateless
+
+
+
+### Sidenote: Pipes in linux
+```bash
+cat index.html | tr "[A-Z]" "[a-z]" | grep lambda | sort
+```
+
+
+
 
 ---
 # Source
@@ -379,6 +384,9 @@ DoubleStream randomDoubles = new Random().doubles();
 IntStream randomInts = new Random().ints(0, 10);
 ```
 
+Note:
+The primitive streams are included for performance reasons
+
 ---
 # Stream: intermediate operations
 - returns a *Stream*, not elements 
@@ -420,10 +428,36 @@ Stream<Person> sortedStream = persons.stream()
 - eager: force evaluation of the stream
 
 
+Task: Find the average age in Sandnes
 ```
-int maxAge = persons.stream()
-  .mapToInt(Person::getAge)
-  .max();
+OptionalDouble average = persons.stream()
+    .filter(p -> p.getCity().getName().equals("Sandnes"))
+    .mapToInt(p -> p.getAge())
+    .average();
+```
+_(How would an imperative solution look like?)_
+
+---
+# Imperative solution
+Task: Find the average age in Sandnes
+```
+int sum = 0;
+int count = 0;
+for(Person person : persons){
+    if(person.getCity().getName().equals("Sandnes")) {
+        sum += person.getAge();
+        count ++;
+    }
+}
+double averageAgeInSandnes = (double)sum / count;
+```
+
+The Stream solution:
+```
+OptionalDouble average = persons.stream()
+    .filter(p -> p.getCity().getName().equals("Sandnes"))
+    .mapToInt(p -> p.getAge())
+    .average();
 ```
 
 
@@ -536,12 +570,52 @@ public static Predicate<Person> isAdult = p -> p.getAge() > 17;
 - A behavioral parameter (lambda) may be invoked concurrently
 - Must not access any state that might change during the operation
 - This constraint gives us “wiggle room” to optimize
+- fork/join from java7 under the hood
+- order not guaranteed
 
-(illustere parallel kjøroing?)
+```
+//Sequential
+OptionalDouble average = persons.stream()
+    .filter(p -> p.getCity().getName().equals("Sandnes"))
+    .mapToInt(p -> p.getAge())
+    .average();
 
-## Performance
+//Parallel
+OptionalDouble average = persons.parallelStream()
+    .filter(p -> p.getCity().getName().equals("Sandnes"))
+    .mapToInt(p -> p.getAge())
+    .average();
+```
+
+---
+# Parallel Streams: visual model
+
+![Parallel Streams](img/parallelSteam.png)
+
+Notater:
+PS = Always more work, but might take less time
+For small and simple problems, sequential is usually still faster
+lambda kan bare akksessere "effective final vars"
+
+(Source: https://oracleus.activeevents.com/2013/connect/sessionDetail.ww?SESSION_ID=7942)
+
+---
+# Parallel Streams: Awesome FINN example
+```Java
+List<Long> awsomeFinnAdIds = awesomeAdService.fetchAwsomeAds();
+
+List<Ads> awesomeFinnAds = awsomeFinnAdIds.parallelStream()
+  .map(adService::fetchAd)
+  .filter(ad -> ad.isActive())
+  .collect(toList());
+```
+
+---
+# Parallel Streams: Performance
+
+Notes (should be structured better):
 - Should I go parallel?
-- Do not assume parallel is always faste
+- Do not assume parallel is always faster!
  - Going parallel is easy, but not always the right thing to do
 - Qualitative considerations
  - How good is the stream source decomposition?
@@ -553,19 +627,51 @@ public static Predicate<Person> isAdult = p -> p.getAge() > 17;
 - Complex pipelines are harder to reason about
 - MEASURE!
 
+## Simple performance model:
 ```
 N = size of source data set
 Q = cost per-element through the pipeline
 N * Q ~= cost of pipeline
 ```
-*Larger N * Q → higher chance of good parallel performance*
-*easier to know N
+- Larger N * Q → higher chance of good parallel performance
+- Gnererally it is easier to know N
+
+
 
 ---
 # default methods
+- A clever way to enhance exisiting interfaces
+
+- Java Collections Framework, having been designed fifteen years ago for a language without a functional orientation, do not have a method forEach, or any of the other methods that this strategy will require.
+- until now adding new methods to an interface has been impossible without forcing modification to existing classes
+- This is the rationale for the introduction of default methods (also called virtual extension methods or defender methods).
 - not break existing collections in Java
 - any interface can contain one ore more concrete methods
 - can be re-implemented
+
+
+```
+interface Iterator {
+  // existing method declarations
+  default void skip() {
+      if (hasNext()) next();
+  }
+}
+```
+
+---
+# Stream API: summary
+- **Sources:** Collections, Generator functions, IO
+- **Intermediate functions:** filter, map, sorted
+- **Terminal operations:** sum, max, min, collect, groupingBy
+
+---
+# References:
+- books: 
+Functional Programming in Java - Vankat Subramaniam
+
+
+- presentations:
 
 
 
