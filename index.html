@@ -153,10 +153,6 @@ i -> i*2;
 (x, y) -> x + y
 ```
 
-```
-(final Integer i) -> i * 2;
-```
-
 ---
 # Reuse lambdas
 
@@ -205,10 +201,9 @@ x -> x + x
  
 ```
 
-### Notes:
-- enable better libraries
-- use lexical scoping
-- effectively final
+- enables better libraries
+- uses lexical scoping
+- requires *effectively final*
 
 
 ---
@@ -243,7 +238,7 @@ public interface Predicate<T> {
 }
 ```
 
-- **one** abstract unimplemented methods
+- **one** abstract unimplemented method
 - optional @FunctionalInterface annotation
 - already a lot of functional interfaces in java
 - Java API will be full of functional interfaces
@@ -298,34 +293,31 @@ int sum = numbers.stream()
 ---
 # The Java Stream API
 
-- Integration of lambda expression into the core Collection API's
-- Streams are like iterators, yield elements for processing
+- Integration of lambda expressions with the Collection API's
 - An abstraction for specifying aggregate computation on data set
-- Why did they not just add filter, map etc directly on Java Collections?
+- Streams are like iterators, yield elements for processing
+- Streams can be finite and infinite
+- **Intention**: *replace loops for aggregate opterations*
 
-- Can be paralell
-- Can be infinite
-- more concise 
-- more readable
+### Streams gives us:
+
+- more readable code
 - more composable operations
-- parallelizable
+- parallelizable 
 
-_Intention: replace loops for aggregate opterations_
+<!--
+Why did they not just add filter, map etc directly on Java Collections?
+-->
 
-Notater:
-- vi har jo hatt dette i databaser en stund!
-- løsning i Java 8: Stream (med hjelp av lambda)
-- Stream pipelimes are like builders
- - ladd many intermediate ops, then execute pipeline ONCE
-- Don't modify source during query!!
+### 
 
-Fine prints:
-- do NOT modify the source during query
-- operation params must be stateless
+### Think of Stream pipelines as builders:
 
+- have stream source
+- add many intermediate operations
+- execute pipeline **ONCE**
 
-
-### Sidenote: Pipes in linux
+*Sidenote: Pipes in linux*
 ```bash
 cat index.html | tr "[A-Z]" "[a-z]" | grep lambda | sort
 ```
@@ -334,46 +326,41 @@ cat index.html | tr "[A-Z]" "[a-z]" | grep lambda | sort
 
 
 ---
-# Source
+## Source
 - collections, arrays, generator functions, IO
-- _can be infinite_
+- _can be finite or infinite_
+- **do NOT modify the source during query**
 
-# Intermediate operations
-- filter, map, flatMap, sorted, distinct, limit,...
-- lazy: create new strams
-- often use lambdas to transform or drop values
-Notater:
-gjør ikke faktisk arbeid, setter bare opp pipeline med operasjoner
+## Intermediate operations
+- *filter, map, mapToInt, flatMap, sorted, distinct, limit...*
+- stateless or statefull
+- lazy -- returns new streams
+- lambdas used to transform or drop values
 
-# Terminal operation
-- Aggregation / summary:
-  - toArray, toList
-  - reduce,
-  - sum, min, max, count
-  - anyMatch, allMatch
-- iteration
-  - forEach
-- Searching
-  - findFirst
-  - findAny
-
+## Terminal operation
+- **Aggregation**: *toArray, toList, reduce, sum, min, max, count, anyMatch, allMatch*
+- **Iteration**: *forEach*
+- **Searching**: *findFirst, findAny*
 - produces a result / side-effect
-- _pulls_ values down the pipeline
+
+
 
 ---
 # Stream: sources 
 
-from Collections
+### Collections
 ```
+List<Person> persons = new ArrayList<>();
+
 Stream<Person> personStream = persons.stream();
 ```
 
-from IO
+### IO
 ```
 Stream<String> lineStream = bufferedReader.lines();
  ```
 
-Stream factories
+### Stream factories
 ```
 //range
 IntStream numbers = IntStream.range(0, 10);
@@ -384,37 +371,32 @@ DoubleStream randomDoubles = new Random().doubles();
 IntStream randomInts = new Random().ints(0, 10);
 ```
 
-Note:
-The primitive streams are included for performance reasons
+_(Primitive streams are included for performance reasons)_
 
 ---
 # Stream: intermediate operations
 - returns a *Stream*, not elements 
 - they are lazy
 
-filter
+### filter
 ```
 Stream<Person> stream = persons.stream().filter(p -> p.getAge() > 17);
 ```
 
-map
+### map
 ```
 Stream<String> stream = persons.stream().map(Person::getName);
 ```
 
-mapToInt
+### mapToInt
 ```
 IntStream stream3 = persons.stream().mapToInt(Person::getAge);
 ```
 
 ---
 # Stream: statefull intermediate operations
-- harder to run in parallel
-- Examples: 
- - limit
- - substream 
- - sorted
- - distinct
+- harder to parallelize
+- Examples: *limit, substream, sorted, distinct*
 
 ```
 Stream<Person> sortedStream = persons.stream()
@@ -423,7 +405,7 @@ Stream<Person> sortedStream = persons.stream()
 ```
 
 ---
-# Stream: Terminal operations
+# Stream: terminal operations
 - return non-stream elements
 - eager: force evaluation of the stream
 
@@ -431,7 +413,7 @@ Stream<Person> sortedStream = persons.stream()
 Task: Find the average age in Sandnes
 ```
 OptionalDouble average = persons.stream()
-    .filter(p -> p.getCity().getName().equals("Sandnes"))
+    .filter(p -> p.getCity().equals("Sandnes"))
     .mapToInt(p -> p.getAge())
     .average();
 ```
@@ -444,7 +426,7 @@ Task: Find the average age in Sandnes
 int sum = 0;
 int count = 0;
 for(Person person : persons){
-    if(person.getCity().getName().equals("Sandnes")) {
+    if(person.getCity().equals("Sandnes")) {
         sum += person.getAge();
         count ++;
     }
@@ -455,7 +437,7 @@ double averageAgeInSandnes = (double)sum / count;
 The Stream solution:
 ```
 OptionalDouble average = persons.stream()
-    .filter(p -> p.getCity().getName().equals("Sandnes"))
+    .filter(p -> p.getCity().equals("Sandnes"))
     .mapToInt(p -> p.getAge())
     .average();
 ```
@@ -486,7 +468,7 @@ Knerten Lillebror]
 ```
 
 ---
-# Stream: Collector
+# Stream: Collector - groupingBy
 
 
 Collectors.groupingBy: age
@@ -497,24 +479,26 @@ Map<Integer, List<Person>> personsByAge =
 
 groupingBy age, and only get their names
 ```
-Map<Integer, List<String>> peopleByAge = 
+Map<Integer, List<String>> nameByAge = 
   persons.stream()
     .collect(groupingBy(Person::getAge, mapping(Person::getName, toList())));
 ```
-
+<!--
 groupingByAge, and only count elements in group
 ```
-Map<Integer, Long> ages = 
+Map<Integer, Long> agesCount = 
   persons.stream()
     .collect(groupingBy(Person::getAge, counting()));
-```
-```
+
+//output
 {16=1, 32=1, 28=2, 12=1, 29=1}
 ```
+-->
 
----
+<!--
+
+
 # Collector: joining
-# droppes?
 
 ```
 persons.stream()
@@ -529,6 +513,8 @@ Output:
 21:Ola Hansen, 28:Ivar Østhus, 29:Kari Normann, 42:Donald Duck
 ```
 
+-->
+
 ---
 # Stream the contents of a CSV file
 
@@ -539,10 +525,9 @@ name, age, city, country
 Ivar Østhus, 28, Oslo, Norway
 Viswanathan Anand, 43, Mayiladuthurai, India
 Magnus Carlsen, 22, Tønsberg, Norway
-...
+..
 ```
 
-**Solution:**
 ```
 InputStream is = new FileInputStream(new File("persons.csv"));
 BufferedReader br = new BufferedReader(new InputStreamReader(is));
@@ -553,10 +538,8 @@ List<Person> persons = br.lines()
     .filter(isAdult)
     .limit(50)
     .collect(toList());
-```
 
-lambdas:
-```
+//lambdas
 public static Function<String, Person> toPerson = (line) -> {
   String[] p = line.split(", ");
   return new Person(p[0], Integer.parseInt(p[1]), p[2], p[3]);
@@ -567,22 +550,26 @@ public static Predicate<Person> isAdult = p -> p.getAge() > 17;
 
 ---
 # Parallel Streams
+
+<!--
+- Just need to change from "stream()" to "parallelStream()"
 - A behavioral parameter (lambda) may be invoked concurrently
 - Must not access any state that might change during the operation
 - This constraint gives us “wiggle room” to optimize
 - fork/join from java7 under the hood
 - order not guaranteed
+-->
 
 ```
 //Sequential
 OptionalDouble average = persons.stream()
-    .filter(p -> p.getCity().getName().equals("Sandnes"))
+    .filter(p -> p.getCity().equals("Sandnes"))
     .mapToInt(p -> p.getAge())
     .average();
 
 //Parallel
 OptionalDouble average = persons.parallelStream()
-    .filter(p -> p.getCity().getName().equals("Sandnes"))
+    .filter(p -> p.getCity().equals("Sandnes"))
     .mapToInt(p -> p.getAge())
     .average();
 ```
@@ -592,62 +579,53 @@ OptionalDouble average = persons.parallelStream()
 
 ![Parallel Streams](img/parallelSteam.png)
 
-Notater:
-PS = Always more work, but might take less time
-For small and simple problems, sequential is usually still faster
-lambda kan bare akksessere "effective final vars"
+<!--
+- Always more work, but might take less time
+- For small and simple problems, sequential is usually still faster
+- lambda kan bare akksessere "effective final vars"
+-->
 
 (Source: https://oracleus.activeevents.com/2013/connect/sessionDetail.ww?SESSION_ID=7942)
 
 ---
-# Parallel Streams: Awesome FINN example
-```Java
-List<Long> awsomeFinnAdIds = awesomeAdService.fetchAwsomeAds();
+# Parallel Streams: performance
 
-List<Ads> awesomeFinnAds = awsomeFinnAdIds.parallelStream()
-  .map(adService::fetchAd)
-  .filter(ad -> ad.isActive())
-  .collect(toList());
 ```
-
----
-# Parallel Streams: Performance
-
-Notes (should be structured better):
-- Should I go parallel?
-- Do not assume parallel is always faster!
- - Going parallel is easy, but not always the right thing to do
-- Qualitative considerations
- - How good is the stream source decomposition?
- - Does the terminal operation have a cheap or expensive merge step?
-- What are the stream characteristics?
- - The primitive streams are included for performance reasons
- - Boxing hurts performance
-- For small data sets, sequential usually wins
-- Complex pipelines are harder to reason about
-- MEASURE!
-
-## Simple performance model:
-```
-N = size of source data set
+N = size of source
 Q = cost per-element through the pipeline
 N * Q ~= cost of pipeline
 ```
 - Larger N * Q → higher chance of good parallel performance
-- Gnererally it is easier to know N
+- Gnererally it is easier to know Ns
+- For small data sets → sequential usually wins
+- Complex pipelines are harder to reason about
+- What are the stream characteristics?
+- **Do not assume parallel is always faster!**
+<br /><br /><br />
 
-
+#.center[**MEASURE!!!**]
 
 ---
-# default methods
-- A clever way to enhance exisiting interfaces
+# Parallel Streams: Awesome FINN example
+```
+List<Long> awsomeFinnAdIds = awesomeAdService.fetchAwsomeAds();
 
-- Java Collections Framework, having been designed fifteen years ago for a language without a functional orientation, do not have a method forEach, or any of the other methods that this strategy will require.
-- until now adding new methods to an interface has been impossible without forcing modification to existing classes
-- This is the rationale for the introduction of default methods (also called virtual extension methods or defender methods).
-- not break existing collections in Java
-- any interface can contain one ore more concrete methods
-- can be re-implemented
+List<Ad> awesomeFinnAds = awsomeFinnAdIds.parallelStream()
+  .map(adService::fetchAd)
+  .filter(Ad::isActive)
+  .collect(toList());
+```
+
+---
+# Interface: default methods
+- Java Collections Framework 
+ - designed fifteen years ago 
+ - without a functional orientation
+ - do not have a method forEach, stream, ..
+- Until now adding new methods to an interface has been impossible without forcing modification to existing classes
+ - Solution: *default methods in interfaces*
+ - (also called virtual extension methods or defender methods)
+- A clever way to enhance exisiting interfaces with new methods
 
 
 ```
@@ -661,19 +639,46 @@ interface Iterator {
 
 ---
 # Stream API: summary
-- **Sources:** Collections, Generator functions, IO
-- **Intermediate functions:** filter, map, sorted
-- **Terminal operations:** sum, max, min, collect, groupingBy
+
+- **Sources:** 
+ - Collections, Generator functions, IO
+
+
+- **Intermediate functions:** 
+ - filter, map, sorted, limit
+ - lazy
+
+
+- **Terminal operations:** 
+ - sum, max, min, collect, groupingBy
+ - eager
 
 ---
-# References:
-- books: 
-Functional Programming in Java - Vankat Subramaniam
+## Books: 
+<div>
+  <div style="width: 49%;display: inline-block;">
+    <img src="img/book1.jpg" style="border: 1px solid silver;width: 120px;">
+    <br />
+    Functional Programming in Java <br /> 
+    *Vankat Subramaniam*
+  </div>
 
+  <div style="width: 49%;display: inline-block;">
+    <img src="img/book2.jpg" style="border: 1px solid silver;width: 110px;">
+    <br />
+    Java 8 Lambdas in Action <br />
+    *Raoul-Gabriel Urma, Mario Fusco, and Alan Mycroft*
+  </div>
+</div>
 
-- presentations:
+## Presentations:
 
+- https://oracleus.activeevents.com/2013/connect/sessionDetail.ww?SESSION_ID=7942 
+- https://oracleus.activeevents.com/2013/connect/sessionDetail.ww?SESSION_ID=7504
+- http://www.slideshare.net/jaxlondon2012/lambda-a-peek-under-the-hood-brian-goetz
 
+## Videos:
+- http://parleys.com/channel/5243df06e4b0d1fb3c78fe31/presentations?sort=date&state=public
 
     </textarea>
     <script src="lib/remark.min.js" type="text/javascript">
