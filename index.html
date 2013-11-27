@@ -75,7 +75,7 @@ for(int i = 0; i < numbers.size(); i++) {
 
 ```
 //2: enhanced for-loop
-for(int n : numbers) {
+for(Integer n : numbers) {
   System.out.println(n);
 }
 ```
@@ -116,6 +116,57 @@ numbers.forEach(new Consumer<Integer>() {
 ```
 numbers.forEach((Integer n) -> System.out.println(n));
 ```
+
+---
+# What is a functional interfaces?
+
+```
+@FunctionalInterface
+public interface Predicate<T> {
+  boolean test(T t);
+}
+```
+
+- **one** abstract unimplemented method
+- optional @FunctionalInterface annotation
+- already a lot of functional interfaces in java
+- Java API will be full of functional interfaces
+
+---
+# Functional interfaces added in Java 8
+
+```
+Counsumer<T> 
+//takes an input T and performs an operation on it.
+
+Supplier<T> 
+//a kind of factory,  will return a new or existing instance.
+
+Predicate<T>
+//Checks if argument T satisfies a requirement.
+
+Function<T, R> 
+//Transform an argument from type T to type R.
+```
+---
+## Methods taking a *functional interface* will accept:
+
+- an anonymous inner class
+- a lambda expression
+- a method reference
+
+<!--
+# We can use lambdas with methods which takes a *functional interface* as argument
+
+Notater:
+- Hva er functional interface?
+- Bonus: existing libraries are now forward-compatible to lambdas
+ - Libraries that never imagined lambdas still work with them!
+ - Maintains significant investment in existing libraries
+ - Fewer new concepts
+- invokedynamic to capture lambda expressions
+
+-->
 
 
 ---
@@ -205,60 +256,6 @@ x -> x + x
 - uses lexical scoping
 - requires *effectively final*
 
-
----
-# Use of functional interface
-
-Methods taking a *functional interface* will accept:
-
-- an anonymous inner class
-- a lambda expression
-- a method reference
-
-<!--
-# We can use lambdas with methods which takes a *functional interface* as argument
-
-Notater:
-- Hva er functional interface?
-- Bonus: existing libraries are now forward-compatible to lambdas
- - Libraries that never imagined lambdas still work with them!
- - Maintains significant investment in existing libraries
- - Fewer new concepts
-- invokedynamic to capture lambda expressions
-
--->
-
----
-# What is a functional interfaces?
-
-```
-@FunctionalInterface
-public interface Predicate<T> {
-  boolean test(T t);
-}
-```
-
-- **one** abstract unimplemented method
-- optional @FunctionalInterface annotation
-- already a lot of functional interfaces in java
-- Java API will be full of functional interfaces
-
----
-# Functional interfaces in the JDK
-
-```
-Counsumer<T> 
-//takes an input T and performs an operation on it.
-
-Supplier<T> 
-//a kind of factory,  will return a new or existing instance.
-
-Predicate<T>
-//Checks if argument T satisfies a requirement.
-
-Function<T, R> 
-//Transform an argument from type T to type R.
-```
 
 ---
 class: center, middle
@@ -588,7 +585,7 @@ OptionalDouble average = persons.parallelStream()
 (Source: https://oracleus.activeevents.com/2013/connect/sessionDetail.ww?SESSION_ID=7942)
 
 ---
-# Parallel Streams: performance
+# Streams: performance
 
 ```
 N = size of source
@@ -605,7 +602,7 @@ N * Q ~= cost of pipeline
 
 #.center[**MEASURE!!!**]
 
----
+<!--
 # Parallel Streams: Awesome FINN example
 ```
 List<Long> awsomeFinnAdIds = awesomeAdService.fetchAwsomeAds();
@@ -615,6 +612,7 @@ List<Ad> awesomeFinnAds = awsomeFinnAdIds.parallelStream()
   .filter(Ad::isActive)
   .collect(toList());
 ```
+-->
 
 ---
 # Interface: default methods
