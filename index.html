@@ -103,7 +103,7 @@ public interface Iterable<T> {
 }
 ```
 
-### With annonymous inner class:
+### With anonymous inner class:
 ```
 numbers.forEach(new Consumer<Integer>() {
   public void accept(Integer number) {
@@ -136,7 +136,7 @@ public interface Predicate<T> {
 # Functional interfaces added in Java 8
 
 ```
-Counsumer<T> 
+Consumer<T> 
 //takes an input T and performs an operation on it.
 
 Supplier<T> 
@@ -220,7 +220,7 @@ public static Consumer<Integer> consumer() {
 numbers.forEach(consumer());
 ```
 
-### **Variabel**
+### **Variable**
 ```
 public Consumer<Integer> consumer = (Integer n) -> System.out.println(n);
 
@@ -294,13 +294,13 @@ int sum = numbers.stream()
 - An abstraction for specifying aggregate computation on data set
 - Streams are like iterators, yield elements for processing
 - Streams can be finite and infinite
-- **Intention**: *replace loops for aggregate opterations*
+- **Intention**: *replace loops for aggregate operations*
 
 ### Streams gives us:
 
 - more readable code
 - more composable operations
-- parallelizable 
+- parallizable
 
 <!--
 Why did they not just add filter, map etc directly on Java Collections?
@@ -314,7 +314,7 @@ Why did they not just add filter, map etc directly on Java Collections?
 - add many intermediate operations
 - execute pipeline **ONCE**
 
-*Sidenote: Pipes in linux*
+*Side note: Pipes in linux*
 ```bash
 cat index.html | tr "[A-Z]" "[a-z]" | grep lambda | sort
 ```
@@ -458,7 +458,7 @@ Set<String> names = persons.stream()
   .collect(toSet());
 ```
 
-Resultat:
+Result:
 ```
 [Ivar Østhus, Donald Duck, Ola Hansen, Kari Normann, Silje Hansen, 
 Knerten Lillebror]
@@ -593,7 +593,7 @@ Q = cost per-element through the pipeline
 N * Q ~= cost of pipeline
 ```
 - Larger N * Q → higher chance of good parallel performance
-- Gnererally it is easier to know Ns
+- Genererally it is easier to know N
 - For small data sets → sequential usually wins
 - Complex pipelines are harder to reason about
 - What are the stream characteristics?
@@ -623,7 +623,7 @@ List<Ad> awesomeFinnAds = awsomeFinnAdIds.parallelStream()
 - Until now adding new methods to an interface has been impossible without forcing modification to existing classes
  - Solution: *default methods in interfaces*
  - (also called virtual extension methods or defender methods)
-- A clever way to enhance exisiting interfaces with new methods
+- A clever way to enhance existing interfaces with new methods
 
 
 ```
